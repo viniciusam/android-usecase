@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">UseCase</string>
+    <string name="action_delete_all">Delete All</string>
+    <string name="post_not_found">"Post %d does not exists!"</string>
+</resources>
