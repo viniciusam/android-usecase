@@ -14,10 +14,9 @@ import android.widget.Toast;
 
 import com.viniciusam.usecase.R;
 import com.viniciusam.usecase.adapter.PostAdapter;
-import com.viniciusam.usecase.executor.Executor;
+import com.viniciusam.usecase.executor.AbstractExecutor;
 import com.viniciusam.usecase.executor.LooperExecutor;
 import com.viniciusam.usecase.model.Post;
-import com.viniciusam.usecase.usecase.base.UseCase;
 import com.viniciusam.usecase.usecase.post.AddPostUC;
 import com.viniciusam.usecase.usecase.post.DeleteAllPostsUC;
 import com.viniciusam.usecase.usecase.post.DeletePostUC;
@@ -28,7 +27,7 @@ import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity implements PostAdapter.Callbacks {
 
-    private Executor mExecutor;
+    private AbstractExecutor mExecutor;
     private Realm mRealm;
     private RealmResults mPostResults;
 
@@ -65,20 +64,21 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.Callb
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new AddPostUC()
-                        .onSuccess(new UseCase.OnSuccessCallback() {
+                mExecutor.executeUseCase(
+                        new AddPostUC(),
+                        new AbstractExecutor.OnSuccessCallback<Post>() {
                             @Override
-                            public void onSuccess() {
-                                showMessage("Post inserted!");
+                            public void onSuccess(Post post) {
+                                showMessage("Post " + post.getId() + " inserted!");
                             }
-                        })
-                        .onError(new UseCase.OnErrorCallback() {
+                        },
+                        new AbstractExecutor.OnErrorCallback() {
                             @Override
                             public void onError(Exception e) {
                                 Log.e("Error", e.getMessage());
                             }
-                        })
-                        .execute(mExecutor);
+                        }
+                );
             }
         });
     }
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.Callb
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mExecutor.stop();
+        mExecutor.stopExecutor();
         mPostResults.removeChangeListeners();
         mRealm.close();
     }
@@ -107,8 +107,14 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.Callb
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_delete_all) {
-            new DeleteAllPostsUC()
-                    .execute(mExecutor);
+            mExecutor.executeUseCase(
+                    new DeleteAllPostsUC(),
+                    new AbstractExecutor.OnSuccessCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            showMessage("All posts deleted!");
+                        }
+                    });
 
             return true;
         }
@@ -125,19 +131,19 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.Callb
 
     @Override
     public void onDeleteClicked(int pos) {
-        new DeletePostUC(this, mAdapter.getItem(pos).getId())
-                .onSuccess(new UseCase.OnSuccessCallback() {
+        mExecutor.executeUseCase(
+                new DeletePostUC(this, mAdapter.getItem(pos).getId()),
+                new AbstractExecutor.OnSuccessCallback<Post>() {
                     @Override
-                    public void onSuccess() {
-                        showMessage("Post deleted!");
+                    public void onSuccess(Post post) {
+                        showMessage("Post " + post.getId() + " deleted!");
                     }
-                })
-                .onError(new UseCase.OnErrorCallback() {
+                },
+                new AbstractExecutor.OnErrorCallback() {
                     @Override
                     public void onError(Exception e) {
                         Log.e("Error", e.getMessage());
                     }
-                })
-                .execute(mExecutor);
+                });
     }
 }

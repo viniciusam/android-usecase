@@ -1,26 +1,33 @@
 package com.viniciusam.usecase.usecase.post;
 
 import com.viniciusam.usecase.model.Post;
-import com.viniciusam.usecase.usecase.base.RealmUseCase;
+import com.viniciusam.usecase.usecase.UseCase;
+
+import io.realm.Realm;
 
 /**
  * Created by Vinicius on 15/08/2016.
  */
-public class AddPostUC extends RealmUseCase<Post> {
+public class AddPostUC implements UseCase<Post> {
 
     @Override
     public Post run() throws InterruptedException {
-        Number lastId = realm().where(Post.class)
-                .max("id");
+        Realm realm = Realm.getDefaultInstance();
+        try {
+            Number lastId = realm.where(Post.class)
+                    .max("id");
 
-        int id = (lastId == null) ? 1 : lastId.intValue() + 1;
-        Post post = new Post(id, "Post #" + id + " Title");
+            int id = (lastId == null) ? 1 : lastId.intValue() + 1;
+            Post post = new Post(id, "Post #" + id + " Title");
 
-        realm().beginTransaction();
-        realm().copyToRealm(post);
-        realm().commitTransaction();
+            realm.beginTransaction();
+            realm.copyToRealm(post);
+            realm.commitTransaction();
 
-        return post;
+            return post;
+        } finally {
+            realm.close();
+        }
     }
 
 }

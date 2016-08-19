@@ -3,7 +3,7 @@ package com.viniciusam.usecase.executor;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.viniciusam.usecase.usecase.base.UseCase;
+import com.viniciusam.usecase.usecase.UseCase;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by Vinicius on 15/08/2016.
  */
-public class ThreadedExecutor implements Executor {
+public class ThreadedExecutor extends AbstractExecutor {
 
     private boolean mIsRunning;
     private Handler mMainHandler;
@@ -24,42 +24,40 @@ public class ThreadedExecutor implements Executor {
     }
 
     @Override
-    public void execute(final UseCase<?> useCase) {
+    public <E> void executeUseCase(final UseCase<E> useCase,
+                                   final OnSuccessCallback<E> onSuccessCallback,
+                                   final OnErrorCallback onErrorCallback) {
         mExecutorService.execute(new Runnable() {
             @Override
             public void run() {
                 mIsRunning  = true;
-
                 try {
-                    useCase.beforeExecute();
-                    Object o = useCase.run();
+                    final E e = useCase.run();
 
-                    if (mIsRunning) {
+                    if (mIsRunning && onSuccessCallback != null) {
                         mMainHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                useCase.callOnSuccess();
+                                onSuccessCallback.onSuccess(e);
                             }
                         });
                     }
                 } catch (final Exception e) {
-                    if (mIsRunning) {
+                    if (mIsRunning && onErrorCallback != null) {
                         mMainHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                useCase.callOnError(e);
+                                onErrorCallback.onError(e);
                             }
                         });
                     }
-                } finally {
-                    useCase.afterExecute();
                 }
             }
         });
     }
 
     @Override
-    public void stop() {
+    public void stopExecutor() {
         mIsRunning = false;
         mExecutorService.shutdown();
     }

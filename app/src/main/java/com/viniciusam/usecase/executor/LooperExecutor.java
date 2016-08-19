@@ -3,12 +3,12 @@ package com.viniciusam.usecase.executor;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.viniciusam.usecase.usecase.base.UseCase;
+import com.viniciusam.usecase.usecase.UseCase;
 
 /**
  * Created by vinicius.moreira on 18/08/2016.
  */
-public class LooperExecutor implements Executor {
+public class LooperExecutor extends AbstractExecutor {
 
     private Handler mMainHandler;
     private Handler mWorkHandler;
@@ -26,35 +26,38 @@ public class LooperExecutor implements Executor {
     }
 
     @Override
-    public void execute(final UseCase<?> useCase) {
+    public <E> void executeUseCase(final UseCase<E> useCase,
+                                   final OnSuccessCallback<E> onSuccessCallback,
+                                   final OnErrorCallback onErrorCallback) {
         mWorkHandler.post(new Runnable() {
             @Override
             public void run() {
                 try {
-                    useCase.beforeExecute();
-                    Object o = useCase.run();
-                    mMainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            useCase.callOnSuccess();
-                        }
-                    });
+                    final E e = useCase.run();
+                    if (onSuccessCallback != null) {
+                        mMainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                onSuccessCallback.onSuccess(e);
+                            }
+                        });
+                    }
                 } catch (final Exception e) {
-                    mMainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            useCase.callOnError(e);
-                        }
-                    });
-                } finally {
-                    useCase.afterExecute();
+                    if (onErrorCallback != null) {
+                        mMainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                onErrorCallback.onError(e);
+                            }
+                        });
+                    }
                 }
             }
         });
     }
 
     @Override
-    public void stop() {
+    public void stopExecutor() {
         if (mWorkHandler != null) {
             mWorkHandler.getLooper().quit();
         }
