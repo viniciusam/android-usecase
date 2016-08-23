@@ -8,7 +8,7 @@ import io.realm.Realm;
 /**
  * Created by Vinicius on 18/08/2016.
  */
-public class DeleteAllPostsUC implements UseCase<Void> {
+public class DeleteAllPostsUC extends UseCase<Void> {
 
     @Override
     public Void run() throws Exception {

@@ -14,7 +14,7 @@ import android.widget.Toast;
 
 import com.viniciusam.usecase.R;
 import com.viniciusam.usecase.adapter.PostAdapter;
-import com.viniciusam.usecase.executor.AbstractExecutor;
+import com.viniciusam.usecase.executor.Executor;
 import com.viniciusam.usecase.executor.LooperExecutor;
 import com.viniciusam.usecase.model.Post;
 import com.viniciusam.usecase.usecase.post.AddPostUC;
@@ -27,7 +27,7 @@ import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity implements PostAdapter.Callbacks {
 
-    private AbstractExecutor mExecutor;
+    private Executor mExecutor;
     private Realm mRealm;
     private RealmResults mPostResults;
 
@@ -64,15 +64,15 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.Callb
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mExecutor.executeUseCase(
-                        new AddPostUC(),
-                        new AbstractExecutor.OnSuccessCallback<Post>() {
+                new AddPostUC().runOnExecutor(
+                        mExecutor,
+                        new Executor.OnSuccessCallback<Post>() {
                             @Override
                             public void onSuccess(Post post) {
                                 showMessage("Post " + post.getId() + " inserted!");
                             }
                         },
-                        new AbstractExecutor.OnErrorCallback() {
+                        new Executor.OnErrorCallback() {
                             @Override
                             public void onError(Exception e) {
                                 Log.e("Error", e.getMessage());
@@ -107,9 +107,9 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.Callb
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_delete_all) {
-            mExecutor.executeUseCase(
-                    new DeleteAllPostsUC(),
-                    new AbstractExecutor.OnSuccessCallback<Void>() {
+            new DeleteAllPostsUC().runOnExecutor(
+                    mExecutor,
+                    new Executor.OnSuccessCallback<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
                             showMessage("All posts deleted!");
@@ -131,15 +131,15 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.Callb
 
     @Override
     public void onDeleteClicked(int pos) {
-        mExecutor.executeUseCase(
-                new DeletePostUC(this, mAdapter.getItem(pos).getId()),
-                new AbstractExecutor.OnSuccessCallback<Post>() {
+        new DeletePostUC(this, mAdapter.getItem(pos).getId()).runOnExecutor(
+                mExecutor,
+                new Executor.OnSuccessCallback<Post>() {
                     @Override
                     public void onSuccess(Post post) {
                         showMessage("Post " + post.getId() + " deleted!");
                     }
                 },
-                new AbstractExecutor.OnErrorCallback() {
+                new Executor.OnErrorCallback() {
                     @Override
                     public void onError(Exception e) {
                         Log.e("Error", e.getMessage());

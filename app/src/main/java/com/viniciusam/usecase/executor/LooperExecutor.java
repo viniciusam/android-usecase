@@ -8,10 +8,10 @@ import com.viniciusam.usecase.usecase.UseCase;
 /**
  * Created by vinicius.moreira on 18/08/2016.
  */
-public class LooperExecutor extends AbstractExecutor {
+public class LooperExecutor implements Executor {
 
-    private Handler mMainHandler;
-    private Handler mWorkHandler;
+    private volatile Handler mMainHandler;
+    private volatile Handler mWorkHandler;
 
     public LooperExecutor() {
         mMainHandler = new Handler(Looper.getMainLooper());

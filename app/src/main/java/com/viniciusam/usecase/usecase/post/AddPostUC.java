@@ -8,7 +8,7 @@ import io.realm.Realm;
 /**
  * Created by Vinicius on 15/08/2016.
  */
-public class AddPostUC implements UseCase<Post> {
+public class AddPostUC extends UseCase<Post> {
 
     @Override
     public Post run() throws InterruptedException {

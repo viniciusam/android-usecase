@@ -11,7 +11,7 @@ import io.realm.Realm;
 /**
  * Created by Vinicius on 18/08/2016.
  */
-public class DeletePostUC implements UseCase<Post> {
+public class DeletePostUC extends UseCase<Post> {
 
     private Context mContext;
     private int mIdToDelete;

@@ -11,14 +11,12 @@ import java.util.concurrent.Executors;
 /**
  * Created by Vinicius on 15/08/2016.
  */
-public class ThreadedExecutor extends AbstractExecutor {
+public class ThreadedExecutor implements Executor {
 
-    private boolean mIsRunning;
-    private Handler mMainHandler;
-    private ExecutorService mExecutorService;
+    private volatile Handler mMainHandler;
+    private volatile ExecutorService mExecutorService;
 
     public ThreadedExecutor() {
-        mIsRunning = false;
         mMainHandler = new Handler(Looper.getMainLooper());
         mExecutorService = Executors.newCachedThreadPool();
     }
@@ -30,11 +28,10 @@ public class ThreadedExecutor extends AbstractExecutor {
         mExecutorService.execute(new Runnable() {
             @Override
             public void run() {
-                mIsRunning  = true;
                 try {
                     final E e = useCase.run();
 
-                    if (mIsRunning && onSuccessCallback != null) {
+                    if (onSuccessCallback != null) {
                         mMainHandler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -43,7 +40,7 @@ public class ThreadedExecutor extends AbstractExecutor {
                         });
                     }
                 } catch (final Exception e) {
-                    if (mIsRunning && onErrorCallback != null) {
+                    if (onErrorCallback != null) {
                         mMainHandler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -58,7 +55,6 @@ public class ThreadedExecutor extends AbstractExecutor {
 
     @Override
     public void stopExecutor() {
-        mIsRunning = false;
         mExecutorService.shutdown();
     }
 
